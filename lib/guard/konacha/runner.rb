@@ -44,9 +44,10 @@ module Guard
         end
 
         formatter.write_summary
-        notify
+        notify(@formatter)
       rescue => e
         UI.error(e)
+        notify(ErrorNotification.new e)
       end
 
 
@@ -85,13 +86,26 @@ module Guard
         "#{Time.now.to_i}#{rand(100)}"
       end
 
-      def notify
+      def notify(notification)
         if options[:notification]
-          image = @formatter.success? ? :success : :failed
-          ::Guard::Notifier.notify(@formatter.summary_line, :title => "Konacha Specs", :image => image)
+          image = notification.success? ? :success : :failed
+          ::Guard::Notifier.notify(notification.summary_line, :title => "Konacha Specs", :image => image)
         end
       end
 
+      class ErrorNotification
+        def initialize(exception)
+          @exception = exception
+        end
+
+        def success?
+          false
+        end
+
+        def summary_line
+          @exception.message
+        end
+      end
     end
   end
 end
