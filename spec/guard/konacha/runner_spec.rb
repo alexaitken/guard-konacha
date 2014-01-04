@@ -2,11 +2,10 @@ require 'spec_helper'
 
 describe Guard::Konacha::Runner do
 
+  let(:konacha_runner) { double("konacha runner").as_null_object }
   let(:konacha_formatter) { double("konacha formatter").as_null_object }
-  let(:notification_setting) { true }
   let(:rails_env_file) { File.expand_path('../../../dummy/config/environment', __FILE__) }
   let(:runner_options) { {
-    :notification => notification_setting,
     :rails_environment_file => rails_env_file,
     :formatter => konacha_formatter
   } }
@@ -14,9 +13,13 @@ describe Guard::Konacha::Runner do
   subject { Guard::Konacha::Runner.new runner_options }
 
   before do
-    # Silence Ui.info output
+    # Silence Ui output
     ::Guard::UI.stub :info => true
     ::Guard::UI.stub :error => true
+  end
+
+  before do
+    subject.stub(:runner) { konacha_runner }
   end
 
   describe '#initialize' do
@@ -48,10 +51,7 @@ describe Guard::Konacha::Runner do
   end
 
   describe '#run' do
-    let(:konacha_runner) { double("konacha runner").as_null_object }
-
     before do
-      subject.stub(:runner) { konacha_runner }
       File.stub(:exists?) { true }
     end
 
@@ -85,11 +85,8 @@ describe Guard::Konacha::Runner do
   end
 
   describe "notifications" do
-    before { subject.stub(:runner) { konacha_runner } }
-    let(:konacha_runner) { double("konacha runner").as_null_object }
-
     context 'enabled' do
-      let(:notification_setting) { true }
+      let(:runner_options) { super().merge(:notification => true) }
 
       it 'should send a notification after test run' do
         konacha_formatter.stub(:summary_line) { 'summary results' }
@@ -107,7 +104,7 @@ describe Guard::Konacha::Runner do
     end
 
     context "disabled" do
-      let(:notification_setting) { false }
+      let(:runner_options) { super().merge(:notification => false) }
 
       it 'should not send notification after test run' do
         Guard::Notifier.should_not_receive(:notify)
