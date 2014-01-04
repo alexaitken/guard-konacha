@@ -84,4 +84,43 @@ describe Guard::Konacha::Runner do
       runner.run
     end
   end
+
+  describe "notifications" do
+    before { runner.stub(:runner) { konacha_runner } }
+    let(:konacha_runner) { double("konacha runner").as_null_object }
+
+    context 'enabled' do
+      let(:notification_setting) { true }
+
+      it 'should send a notification after test run' do
+        konacha_formatter.stub(:summary_line) { 'summary results' }
+        Guard::Notifier.should_receive(:notify).with('summary results', anything)
+
+        runner.run
+      end
+
+      it 'should send a nofitication on an expection during a test run' do
+        konacha_formatter.stub(:write_summary).and_raise(StandardError, 'expection message')
+        Guard::Notifier.should_receive(:notify).with('expection message', anything)
+
+        runner.run
+      end
+    end
+
+    context "disabled" do
+      let(:notification_setting) { false }
+
+      it 'should not send notification after test run' do
+        Guard::Notifier.should_not_receive(:notify)
+        runner.run
+      end
+
+      it 'should not send notification after an error during a test run' do
+        konacha_formatter.stub(:write_summary).and_raise(StandardError)
+        Guard::Notifier.should_not_receive(:notify)
+        runner.run
+      end
+
+    end
+  end
 end
