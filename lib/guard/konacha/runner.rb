@@ -19,7 +19,7 @@ module Guard
         raise "Konacha not loaded" unless defined? ::Konacha
 
         # Custom formatter to handle multiple runs
-        @formatter = Formatter.new
+        @formatter = options.fetch(:formatter) { Formatter.new }
         ::Konacha.config.formatters = [@formatter]
 
         # Reusable session to increase performance
@@ -44,7 +44,7 @@ module Guard
         end
 
         formatter.write_summary
-        notify(@formatter)
+        notify(formatter)
       rescue => e
         UI.error(e)
         notify(ErrorNotification.new e)
