@@ -53,7 +53,6 @@ describe Guard::Konacha::Runner do
     before do
       subject.stub(:runner) { konacha_runner }
       File.stub(:exists?) { true }
-      konacha_formatter.stub(:any?) { true }
     end
 
     context 'calling runner' do
