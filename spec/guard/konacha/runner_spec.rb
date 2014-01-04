@@ -11,7 +11,7 @@ describe Guard::Konacha::Runner do
     :formatter => konacha_formatter
   } }
 
-  let(:runner) { Guard::Konacha::Runner.new runner_options }
+  subject { Guard::Konacha::Runner.new runner_options }
 
   before do
     # Silence Ui.info output
@@ -21,7 +21,7 @@ describe Guard::Konacha::Runner do
 
   describe '#initialize' do
     it 'should have default options and allow overrides' do
-      runner.options.should eq(Guard::Konacha::Runner::DEFAULT_OPTIONS.merge(runner_options))
+      subject.options.should eq(Guard::Konacha::Runner::DEFAULT_OPTIONS.merge(runner_options))
     end
 
     it 'should set Konacha mode to runner' do
@@ -33,16 +33,16 @@ describe Guard::Konacha::Runner do
     describe 'with run_all_on_start set to true' do
       let(:runner_options) { super().merge(:run_all_on_start => true) }
       it 'should run all if :run_all_on_start option set to true' do
-        runner.should_receive(:run).with(no_args)
-        runner.start
+        subject.should_receive(:run).with(no_args)
+        subject.start
       end
     end
 
     describe 'with run_all_on_start set to false' do
       let(:runner_options) { super().merge(:run_all_on_start => false) }
       it 'should run all if :run_all_on_start option set to true' do
-        runner.should_not_receive(:run)
-        runner.start
+        subject.should_not_receive(:run)
+        subject.start
       end
     end
   end
@@ -51,7 +51,7 @@ describe Guard::Konacha::Runner do
     let(:konacha_runner) { double("konacha runner").as_null_object }
 
     before do
-      runner.stub(:runner) { konacha_runner }
+      subject.stub(:runner) { konacha_runner }
       File.stub(:exists?) { true }
       konacha_formatter.stub(:any?) { true }
     end
@@ -62,18 +62,18 @@ describe Guard::Konacha::Runner do
       it 'should run each path through runner' do
         konacha_runner.should_receive(:run).with('/1')
         konacha_runner.should_receive(:run).with('/foo/bar')
-        runner.run(['spec/javascripts/1.js', 'spec/javascripts/foo/bar.js'])
+        subject.run(['spec/javascripts/1.js', 'spec/javascripts/foo/bar.js'])
       end
 
       it 'should run when called with no arguemnts' do
         konacha_runner.should_receive(:run)
-        runner.run
+        subject.run
       end
     end
 
     it 'should format the results' do
       konacha_formatter.should_receive(:write_summary)
-      runner.run
+      subject.run
     end
 
     it 'should reset the formatter before running the test suite' do
@@ -81,12 +81,12 @@ describe Guard::Konacha::Runner do
         konacha_runner.should_receive(:run)
       end
 
-      runner.run
+      subject.run
     end
   end
 
   describe "notifications" do
-    before { runner.stub(:runner) { konacha_runner } }
+    before { subject.stub(:runner) { konacha_runner } }
     let(:konacha_runner) { double("konacha runner").as_null_object }
 
     context 'enabled' do
@@ -96,14 +96,14 @@ describe Guard::Konacha::Runner do
         konacha_formatter.stub(:summary_line) { 'summary results' }
         Guard::Notifier.should_receive(:notify).with('summary results', anything)
 
-        runner.run
+        subject.run
       end
 
       it 'should send a nofitication on an expection during a test run' do
         konacha_formatter.stub(:write_summary).and_raise(StandardError, 'expection message')
         Guard::Notifier.should_receive(:notify).with('expection message', anything)
 
-        runner.run
+        subject.run
       end
     end
 
@@ -112,13 +112,13 @@ describe Guard::Konacha::Runner do
 
       it 'should not send notification after test run' do
         Guard::Notifier.should_not_receive(:notify)
-        runner.run
+        subject.run
       end
 
       it 'should not send notification after an error during a test run' do
         konacha_formatter.stub(:write_summary).and_raise(StandardError)
         Guard::Notifier.should_not_receive(:notify)
-        runner.run
+        subject.run
       end
 
     end
